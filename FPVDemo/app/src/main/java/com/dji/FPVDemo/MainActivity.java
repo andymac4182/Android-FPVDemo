@@ -21,6 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import dji.sdk.AirLink.DJILBAirLink;
 import dji.sdk.Camera.DJICamera;
 import dji.sdk.Camera.DJICamera.CameraReceivedVideoDataCallback;
 import dji.sdk.Codec.DJICodecManager;
@@ -37,6 +38,7 @@ public class MainActivity extends Activity implements SurfaceTextureListener,OnC
     private static final String TAG = MainActivity.class.getName();
 
     protected DJICamera.CameraReceivedVideoDataCallback mReceivedVideoDataCallBack = null;
+    protected DJILBAirLink.DJIOnReceivedVideoCallback mReceivedVideoDataCallBackLightbridge = null;
 
     // Codec for video live view
     protected DJICodecManager mCodecManager = null;
@@ -82,6 +84,15 @@ public class MainActivity extends Activity implements SurfaceTextureListener,OnC
                     mCodecManager.sendDataToDecoder(videoBuffer, size);
                 }else {
                     Log.e(TAG, "mCodecManager is null");
+                }
+            }
+        };
+
+        mReceivedVideoDataCallBackLightbridge = new DJILBAirLink.DJIOnReceivedVideoCallback() {
+            @Override
+            public void onResult(byte[] videoBuffer, int size) {
+                if (mCodecManager != null) {
+                    mCodecManager.sendDataToDecoder(videoBuffer, size);
                 }
             }
         };
@@ -260,6 +271,10 @@ public class MainActivity extends Activity implements SurfaceTextureListener,OnC
                     camera.setDJICameraReceivedVideoDataCallback(mReceivedVideoDataCallBack);
                 }
             }
+            else
+            {
+                product.getAirLink().getLBAirLink().setDJIOnReceivedVideoCallback(mReceivedVideoDataCallBackLightbridge);
+            }
         }
     }
 
@@ -268,6 +283,10 @@ public class MainActivity extends Activity implements SurfaceTextureListener,OnC
         if (camera != null){
             // Reset the callback
             FPVDemoApplication.getCameraInstance().setDJICameraReceivedVideoDataCallback(null);
+        }
+        DJIBaseProduct product = FPVDemoApplication.getProductInstance();
+        if (product != null) {
+            product.getAirLink().getLBAirLink().setDJIOnReceivedVideoCallback(null);
         }
     }
 
